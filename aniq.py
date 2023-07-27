@@ -24,7 +24,7 @@ class AnimatedQuotesMod(loader.Module):
     """Simple module to create animated stickers via bot"""
 
     strings = {
-        "name": "Module---[AnimatedQuotes]",
+        "name": "Module [AnimatedQuotes]",
         "no_text": (
             "<emoji document_id=5312526098750252863>🚫</emoji> <b>Provide a text to"
             " create sticker with</b>"
