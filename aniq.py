@@ -13,7 +13,7 @@
 # scope: hikka_min 1.2.10
 
 from random import choice
-
+import asyncio
 from telethon.tl.types import Message
 
 from .. import loader, utils
@@ -53,23 +53,16 @@ class AnimatedQuotesMod(loader.Module):
             await utils.answer(message, self.strings("no_text"))
             return
 
-        processing_message = await utils.answer(message, self.strings("processing"))
+        message = await utils.answer(message, self.strings("processing"))
 
         try:
             query = await self._client.inline_query("@QuotAfBot", args)
-            if not query:
-                await utils.answer(processing_message, self.strings("no_results"))
-                return
-
-            chosen_sticker = choice(query.results[1:3])
-            if not chosen_sticker.document:
-                await utils.answer(processing_message, self.strings("no_sticker_found"))
-                return
-
+            chosen_sticker = choice(query[1:3])
+            await asyncio.sleep(3)
             await message.respond(file=chosen_sticker.document)
         except Exception as e:
             await utils.answer(message, str(e))
             return
 
-        if processing_message.out:
-            await processing_message.delete()
+        if message.out:
+            await message.delete()
