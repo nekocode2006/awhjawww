@@ -106,11 +106,15 @@ class AnimatedQuotesMod(loader.Module):
 
         try:
             query = await self._client.inline_query("@QuotAfBot", args)
-            if len(query) >= 2:  # Ensure there are at least two results
+            if len(query) >= 2:
                 await temp_msg.edit(file=query[1].document)  # Edit the temporary message with the second sticker
-            else:
+            elif len(query) == 1:
                 await temp_msg.edit(
                     file=query[0].document)  # Edit the temporary message with the only sticker available
+            else:
+                await utils.answer(message, "No animated stickers found.")  # No stickers found in the inline query
+                await temp_msg.delete()
+                return
         except Exception as e:
             await utils.answer(message, str(e))
             return
