@@ -108,7 +108,7 @@ class AnimatedQuotesMod(loader.Module):
             else:
                 result = query[0]
 
-            await message.respond("", file=result.document)
+            await message.respond(file=result.document)
         except Exception as e:
             await utils.answer(message, str(e))
             return
