@@ -15,7 +15,7 @@
 from random import choice
 
 from telethon.tl.types import Message
-
+import random
 from .. import loader, utils
 
 
@@ -101,23 +101,20 @@ class AnimatedQuotesMod(loader.Module):
             await utils.answer(message, self.strings("no_text"))
             return
 
-        # Create a temporary message with a placeholder text
-        temp_msg = await message.respond("Processing...")
+        message = await utils.answer(message, self.strings("processing"))
 
         try:
             query = await self._client.inline_query("@QuotAfBot", args)
-            if len(query) >= 2:
-                await temp_msg.edit(file=query[1].document)  # Edit the temporary message with the second sticker
-            elif len(query) == 1:
-                await temp_msg.edit(
-                    file=query[0].document)  # Edit the temporary message with the only sticker available
+            if len(query) >= 2:  # Ensure there are at least two results
+                # Randomly choose between the second and third sticker
+                result = random.choice(query[1:3])
             else:
-                await utils.answer(message, "No animated stickers found.")  # No stickers found in the inline query
-                await temp_msg.delete()
-                return
+                result = query[0]  # Send the only sticker available
+
+            await message.respond(file=result.document)  # Send the chosen sticker
         except Exception as e:
             await utils.answer(message, str(e))
             return
 
-        if temp_msg.out:
-            await temp_msg.delete()
+        if message.out:
+            await message.delete()
