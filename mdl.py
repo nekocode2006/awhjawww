@@ -22,7 +22,7 @@ class MusicDLMod(loader.Module):
     """Download music"""
 
     strings = {
-        "name": "Music",
+        "name": "Module [MusicDL]",
         "args": "🚫 <b>You forgot to specify the name</b>",
         "loading": "🔍 <b>Loading...</b>",
         "404": "🚫 <b>Music </b><code>{}</code><b> not found</b>",
