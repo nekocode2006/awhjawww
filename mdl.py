@@ -6,13 +6,13 @@ from .. import loader, utils
 class MusicDLMod(loader.Module):
     strings = {
         "name": "MusicDL",
-        "args": "🚫 <b>Write the name</b>",
+        "args": "🚫 <b>You forgot to write the name of the song</b>",
         "loading": "🔍 <b>Loading...</b>",
         "404": "🚫 <b>Music </b><code>{}</code><b> not found</b>",
     }
 
     strings_ru = {
-        "args": "🚫 <b>Напиши название</b>",
+        "args": "🚫 <b>Ты забыл написать название песни</b>",
         "loading": "🔍 <b>Загрузка...</b>",
         "404": "🚫 <b>Песня </b><code>{}</code><b> не найдена</b>",
     }
@@ -40,7 +40,7 @@ class MusicDLMod(loader.Module):
         await self._client.send_file(
             message.peer_id,
             result,
-            caption=f"🎧 {utils.ascii_face()}",
+            caption=f"🎧 Вот это я понимаю трек",
             reply_to=getattr(message, "reply_to_msg_id", None),
         )
         if message.out:
