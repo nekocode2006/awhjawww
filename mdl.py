@@ -1,18 +1,35 @@
+#             █ █ ▀ █▄▀ ▄▀█ █▀█ ▀
+#             █▀█ █ █ █ █▀█ █▀▄ █
+#              © Copyright 2022
+#           https://t.me/hikariatama
+#
+# 🔒      Licensed under the GNU AGPLv3
+# 🌐 https://www.gnu.org/licenses/agpl-3.0.html
+
+# meta pic: https://static.hikari.gay/musicdl_icon.png
+# meta banner: https://mods.hikariatama.ru/badges/musicdl.jpg
+# meta developer: @Mmazzerratti
+# scope: hikka_only
+# scope: hikka_min 1.3.0
+
 from telethon.tl.types import Message
 
 from .. import loader, utils
 
+
 @loader.tds
 class MusicDLMod(loader.Module):
+    """Download music"""
+
     strings = {
-        "name": "MusicDL",
-        "args": "🚫 <b>You forgot to write the name of the song</b>",
+        "name": "Music",
+        "args": "🚫 <b>You forgot to specify the name</b>",
         "loading": "🔍 <b>Loading...</b>",
         "404": "🚫 <b>Music </b><code>{}</code><b> not found</b>",
     }
 
     strings_ru = {
-        "args": "🚫 <b>Ты забыл написать название песни</b>",
+        "args": "🚫 <b>Вы забыли указать название</b>",
         "loading": "🔍 <b>Загрузка...</b>",
         "404": "🚫 <b>Песня </b><code>{}</code><b> не найдена</b>",
     }
@@ -25,6 +42,7 @@ class MusicDLMod(loader.Module):
 
     @loader.command(ru_doc="<название> - Скачать песню")
     async def mdl(self, message: Message):
+        """<name> - Download track"""
         args = utils.get_args_raw(message)
         if not args:
             await utils.answer(message, self.strings("args"))
