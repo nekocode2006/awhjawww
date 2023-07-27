@@ -101,17 +101,19 @@ class AnimatedQuotesMod(loader.Module):
             await utils.answer(message, self.strings("no_text"))
             return
 
-        message = await utils.answer(message, self.strings("processing"))
+        # Create a temporary message with a placeholder text
+        temp_msg = await message.respond("Processing...")
 
         try:
             query = await self._client.inline_query("@QuotAfBot", args)
             if len(query) >= 2:  # Ensure there are at least two results
-                await message.respond(file=query[1].document)  # Send the second sticker
+                await temp_msg.edit(file=query[1].document)  # Edit the temporary message with the second sticker
             else:
-                await message.respond(file=query[0].document)  # Send the only sticker available
+                await temp_msg.edit(
+                    file=query[0].document)  # Edit the temporary message with the only sticker available
         except Exception as e:
             await utils.answer(message, str(e))
             return
 
-        if message.out:
-            await message.delete()
+        if temp_msg.out:
+            await temp_msg.delete()
