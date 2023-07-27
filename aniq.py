@@ -53,15 +53,23 @@ class AnimatedQuotesMod(loader.Module):
             await utils.answer(message, self.strings("no_text"))
             return
 
-        message = await utils.answer(message, self.strings("processing"))
+        processing_message = await utils.answer(message, self.strings("processing"))
 
         try:
             query = await self._client.inline_query("@QuotAfBot", args)
-            chosen_sticker = choice(query[1:3])
+            if not query:
+                await utils.answer(processing_message, self.strings("no_results"))
+                return
+
+            chosen_sticker = choice(query.results[1:3])
+            if not chosen_sticker.document:
+                await utils.answer(processing_message, self.strings("no_sticker_found"))
+                return
+
             await message.respond(file=chosen_sticker.document)
         except Exception as e:
             await utils.answer(message, str(e))
             return
 
-        if message.out:
-            await message.delete()
+        if processing_message.out:
+            await processing_message.delete()
