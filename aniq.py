@@ -8,7 +8,7 @@
 
 # meta pic: https://static.hikari.gay/aniquotes_icon.png
 # meta banner: https://mods.hikariatama.ru/badges/aniquotes.jpg
-# meta developer: @hikarimods
+# meta developer: @Mmazzerratti
 # scope: hikka_only
 # scope: hikka_min 1.2.10
 
@@ -24,7 +24,7 @@ class AnimatedQuotesMod(loader.Module):
     """Simple module to create animated stickers via bot"""
 
     strings = {
-        "name": "AnimatedQuotes",
+        "name": "Module[AnimatedQuotes]",
         "no_text": (
             "<emoji document_id=5312526098750252863>🚫</emoji> <b>Provide a text to"
             " create sticker with</b>"
@@ -105,7 +105,6 @@ class AnimatedQuotesMod(loader.Module):
 
         try:
             query = await self._client.inline_query("@QuotAfBot", args)
-            # Randomly choose between the second and third sticker (index 1 or 2)
             chosen_sticker = choice(query[1:3])
             await message.respond(file=chosen_sticker.document)
         except Exception as e:
