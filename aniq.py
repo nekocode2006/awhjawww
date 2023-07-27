@@ -12,8 +12,6 @@
 # scope: hikka_only
 # scope: hikka_min 1.2.10
 
-from random import choice
-
 from telethon.tl.types import Message
 import random
 from .. import loader, utils
@@ -105,13 +103,12 @@ class AnimatedQuotesMod(loader.Module):
 
         try:
             query = await self._client.inline_query("@QuotAfBot", args)
-            if len(query) >= 2:  # Ensure there are at least two results
-                # Randomly choose between the second and third sticker
+            if len(query) >= 2:
                 result = random.choice(query[1:3])
             else:
-                result = query[0]  # Send the only sticker available
+                result = query[0]
 
-            await message.respond(file=result.document)  # Send the chosen sticker
+            await message.respond("", file=result.document)
         except Exception as e:
             await utils.answer(message, str(e))
             return
