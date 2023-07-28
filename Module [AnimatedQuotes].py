@@ -14,7 +14,7 @@
 
 import asyncio
 
-from random import choice
+from random import randint
 
 from telethon.tl.types import Message
 
@@ -52,14 +52,13 @@ class AnimatedQuotesMod(loader.Module):
         "_cls_doc": "Простенький модуль, который создает анимированные стикеры",
     }
 
-    async def aniqcmd(self, message: Message):
-        """<text> - Create animated quote"""
+    async def generatefoto(self, message: Message, image_index: int):
         args = utils.get_args_raw(message)
         if not args:
-            await utils.answer(message, self.strings("no_text"))
+            await utils.answer(message, self.strings["no_text"])
             return
 
-        message = await utils.answer(message, self.strings("processing"))
+        message = await utils.answer(message, self.strings["processing"])
 
         max_retries = 5
         retry_delay = 5
@@ -68,136 +67,32 @@ class AnimatedQuotesMod(loader.Module):
         for _ in range(max_retries):
             try:
                 query = await self._client.inline_query("@QuotAfBot", args)
-                await message.respond(file=choice(query).document)
-                success = True
-                break
-            except Exception as e:
+                if query and len(query) >= image_index + 1:
+                    await message.respond(file=query[image_index].document)
+                    success = True
+                    break
+            except Exception:
                 await asyncio.sleep(retry_delay)
                 continue
 
         if not success:
             await utils.answer(message, "Failed to fetch animated quote. Please try again later.")
-            
+
         if message.out:
             await message.delete()
+
+    async def aniqcmd(self, message: Message):
+        random_index = randint(0, 3)
+        await self.generatefoto(message, random_index)
 
     async def aniq1cmd(self, message: Message):
-        """<text> - Create animated quote"""
-        args = utils.get_args_raw(message)
-        if not args:
-            await utils.answer(message, self.strings("no_text"))
-            return
-
-        message = await utils.answer(message, self.strings("processing"))
-
-        max_retries = 5
-        retry_delay = 5
-        success = False
-
-        for _ in range(max_retries):
-            try:
-                query = await self._client.inline_query("@QuotAfBot", args)
-                if query:
-                    await message.respond(file=query[0].document)
-                    success = True
-                    break
-            except Exception as e:
-                await asyncio.sleep(retry_delay)
-                continue
-
-        if not success:
-            await utils.answer(message, "Failed to fetch animated quote. Please try again later.")
-
-        if message.out:
-            await message.delete()
+        await self.generatefoto(message, 0)
 
     async def aniq2cmd(self, message: Message):
-        """<text> - Create animated quote"""
-        args = utils.get_args_raw(message)
-        if not args:
-            await utils.answer(message, self.strings("no_text"))
-            return
-
-        message = await utils.answer(message, self.strings("processing"))
-
-        max_retries = 5
-        retry_delay = 5
-        success = False
-
-        for _ in range(max_retries):
-            try:
-                query = await self._client.inline_query("@QuotAfBot", args)
-                if query:
-                    await message.respond(file=query[1].document)
-                    success = True
-                    break
-            except Exception as e:
-                await asyncio.sleep(retry_delay)
-                continue
-
-        if not success:
-            await utils.answer(message, "Failed to fetch animated quote. Please try again later.")
-
-        if message.out:
-            await message.delete()
+        await self.generatefoto(message, 1)
 
     async def aniq3cmd(self, message: Message):
-        """<text> - Create animated quote"""
-        args = utils.get_args_raw(message)
-        if not args:
-            await utils.answer(message, self.strings("no_text"))
-            return
-
-        message = await utils.answer(message, self.strings("processing"))
-
-        max_retries = 5
-        retry_delay = 5
-        success = False
-
-        for _ in range(max_retries):
-            try:
-                query = await self._client.inline_query("@QuotAfBot", args)
-                if query:
-                    await message.respond(file=query[2].document)
-                    success = True
-                    break
-            except Exception as e:
-                await asyncio.sleep(retry_delay)
-                continue
-
-        if not success:
-            await utils.answer(message, "Failed to fetch animated quote. Please try again later.")
-
-        if message.out:
-            await message.delete()
-
+        await self.generatefoto(message, 2)
 
     async def aniq4cmd(self, message: Message):
-        """<text> - Create animated quote"""
-        args = utils.get_args_raw(message)
-        if not args:
-            await utils.answer(message, self.strings("no_text"))
-            return
-
-        message = await utils.answer(message, self.strings("processing"))
-
-        max_retries = 5
-        retry_delay = 5
-        success = False
-
-        for _ in range(max_retries):
-            try:
-                query = await self._client.inline_query("@QuotAfBot", args)
-                if query:
-                    await message.respond(file=query[3].document)
-                    success = True
-                    break
-            except Exception as e:
-                await asyncio.sleep(retry_delay)
-                continue
-
-        if not success:
-            await utils.answer(message, "Failed to fetch animated quote. Please try again later.")
-
-        if message.out:
-            await message.delete()
+        await self.generatefoto(message, 3)
