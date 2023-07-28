@@ -12,7 +12,7 @@
 # scope: hikka_only
 # scope: hikka_min 1.2.10
 
-from hikkatl.types import Message
+from telethon.tl.types import Message
 from .. import loader, utils
 import traceback
 from io import StringIO
