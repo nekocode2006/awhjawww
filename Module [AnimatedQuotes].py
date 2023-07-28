@@ -77,6 +77,9 @@ class AnimatedQuotesMod(loader.Module):
 
         if not success:
             await utils.answer(message, "Failed to fetch animated quote. Please try again later.")
+            
+        if message.out:
+            await message.delete()
 
     async def aniq1cmd(self, message: Message):
         """<text> - Create animated quote"""
