@@ -1,0 +1,125 @@
+# meta developer: @Mmazzerratti
+
+from telethon.tl.types import Message
+from .. import loader, utils
+from random import randint
+import asyncio
+
+
+@loader.tds
+class AnimatedQuotes(loader.Module):
+    strings = {
+        "name": "Module [AnimatedQuotes]",
+        "no_text": (
+            "<emoji document_id=5312526098750252863>🚫</emoji> <b>Укажи текст для"
+            " создания стикера</b>"
+        ),
+        "processing": (
+            "<emoji document_id=5451646226975955576>⌛️</emoji> <b>Думаю...</b>"
+        ),
+        "erroeaq": (
+            "⚠️ Failed to fetch animated quote. Please try again later."
+        ),
+    }
+
+    strings_ru = {
+        "no_text": (
+            "<emoji document_id=5312526098750252863>🚫</emoji> <b>Укажи текст для"
+            " создания стикера</b>"
+        ),
+        "processing": (
+            "<emoji document_id=5451646226975955576>⌛️</emoji> <b>Думаю...</b>"
+        ),
+        "erroeaq": (
+            "⚠️ Не удалось получить анимированную цитату. Пожалуйста, повторите попытку позже."
+        ),
+        "_cmd_doc_aniq": "<text> - Создать рандомный анимированный стикер",
+        "_cmd_doc_aniq1": "<text> - Создать анимированный стикер с рамкой сообщения",
+        "_cmd_doc_aniq2": "<text> - Создать анимированный стикер девочки с листочком",
+        "_cmd_doc_aniq3": "<text> - Создать анимированный стикер девочки с табличкой",
+        "_cmd_doc_aniq4": "<text> - Создать анимированный стикер котиказ с рамкой сообщения",
+        "_cmd_doc_aniq5": "<text> - Создать анимированный стикер котиказ с рамкой сообщения",
+        "_cmd_doc_aniq6": "<text>з - Создать анимированный стикер котиказ с рамкой сообщения",
+        "_cmd_doc_aniq7": "<text>з - Создать анимированный стикер котиказ с рамкой сообщения",
+    }
+
+    strings_en = {
+        "no_text": (
+            "<emoji document_id=5312526098750252863>🚫</emoji> <b>Specify the text for"
+            " creating a sticker</b>"
+        ),
+        "processing": (
+            "<emoji document_id=5451646226975955576>⌛️</emoji> <b>Think...</b>"
+        ),
+        "erroeaq": (
+            "⚠️ Failed to fetch animated quote. Please try again later."
+        ),
+        "_cmd_doc_aniq": "<text> - Create a random animated sticker",
+        "_cmd_doc_aniq1": "<text> - Create an animated sticker with a message frame",
+        "_cmd_doc_aniq2": "<text> - Create an animated sticker of a girl with a leaflet",
+        "_cmd_doc_aniq3": "<text> - Create an animated sticker of a girl with a sign",
+        "_cmd_doc_aniq4": "<text> - Create an animated kitty sticker with a message frame",
+        "_cls_doc": "A module that creates animated stickers",
+    }
+
+
+    async def generatefoto(self, message: Message, image_index: int, row_index: int):
+        args = utils.get_args_raw(message)
+        if not args:
+            await utils.answer(message, self.strings["no_text"])
+            return
+        message = await utils.answer(message, self.strings["processing"])
+        max_retries = 10
+        retry_delay = 10
+        success = False
+        for _ in range(max_retries):
+            try:
+                query = await self._client.inline_query("@QuotAfBot", args)
+                if query and len(query) >= row_index + 1 and len(query[row_index].results) >= image_index + 1:
+                    await message.respond(file=query[row_index].results[image_index].document)
+                    success = True
+                    break
+            except Exception:
+                await asyncio.sleep(retry_delay)
+                continue
+        if not success:
+            await utils.answer(message, self.strings["erroeaq"])
+        if message.out:
+            await message.delete()
+
+
+    async def aniqcmd(self, message: Message):
+        random_index = randint(0, 4)
+        await self.generatefoto(message, random_index)
+
+
+    async def aniq1cmd(self, message: Message):
+        await self.generatefoto(message, 0, row_index=0)
+
+
+    async def aniq2cmd(self, message: Message):
+        await self.generatefoto(message, 1, row_index=0)
+
+
+    async def aniq3cmd(self, message: Message):
+        await self.generatefoto(message, 2, row_index=0)
+
+
+    async def aniq4cmd(self, message: Message):
+        await self.generatefoto(message, 3, row_index=0)
+
+
+    async def aniq5cmd(self, message: Message):
+        await self.generatefoto(message, 0, row_index=1)
+
+
+    async def aniq6cmd(self, message: Message):
+        await self.generatefoto(message, 1, row_index=1)
+
+
+    async def aniq7cmd(self, message: Message):
+        await self.generatefoto(message, 2, row_index=1)
+
+
+    async def aniq8cmd(self, message: Message):
+        await self.generatefoto(message, 3, row_index=1)
