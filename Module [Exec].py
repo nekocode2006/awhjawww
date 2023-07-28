@@ -45,7 +45,7 @@ class AnimatedQuotesMod(loader.Module):
         "_cls_doc": "Простенький модуль, который выполняет команды",
     }
 
-    async def exec(self, message: Message):
+    async def execcmd(self, message: Message):
         code = utils.get_args_raw(message)
         if code:
             try:
