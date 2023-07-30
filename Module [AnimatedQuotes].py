@@ -9,7 +9,8 @@ import asyncio
 @loader.tds
 class ModuleAnimatedQuotes(loader.Module):
     strings_ru = {
-        "name": "Модуль-[AnimatedQuotes]",
+        "name": "Модуль "
+                "[AnimatedQuotes]",
         "no_text": (
             "🚫 <b>Укажи текст для создания стикера</b>"
         ),
@@ -24,7 +25,8 @@ class ModuleAnimatedQuotes(loader.Module):
     }
 
     strings_en = {
-        "name": "Module-[AnimatedQuotes]",
+        "name": "Module "
+                "[AnimatedQuotes]",
         "no_text": (
             "🚫 <b>Specify the text for creating a sticker</b>"
         ),
