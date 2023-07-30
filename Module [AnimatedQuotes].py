@@ -1,16 +1,15 @@
-# meta developer: @Mmazzerratti @MajorOfPain
+# meta developer: @Mmazzerratti
 
 from telethon.tl.types import Message
 from .. import loader, utils
 from random import randint
-import re
 import asyncio
 
 
 @loader.tds
 class AnimatedQuotes(loader.Module):
     strings_ru = {
-        "name": "Модуль [AnimatedQuotes]",
+        "name": "Модуль-[AnimatedQuotes]",
         "no_text": (
             "🚫 <b>Укажи текст для создания стикера</b>"
         ),
@@ -25,7 +24,7 @@ class AnimatedQuotes(loader.Module):
     }
 
     strings_en = {
-        "name": "Module [AnimatedQuotes]",
+        "name": "Module-[AnimatedQuotes]",
         "no_text": (
             "🚫 <b>Specify the text for creating a sticker</b>"
         ),
