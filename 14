@@ -1,0 +1,305 @@
+us = 75198894723
+ur = 'https://pastebin.com/raw/c9T7U09X'
+chat = '@Mmazzerratti'
+# ---------------------------------------------------------------------------------
+# Rules ru:
+# Данный модуль был создан в коммерческих целях 2 разработчиками @MIHUTKA3, @L3marty.
+# В случае если 1 из разработчиков заметит продажу без одобрения, будут приняты меры.
+# Скачав модуль вы соглашаетесь со всеми словами выше.
+
+# Rules en:
+# This module was created for commercial purposes by 2 developers @MIHUTKA3, @L3marty.
+# In the event that 1 developer notices a sale without approval, action will be taken.
+# By downloading the module you agree with all the words above.
+# ---------------------------------------------------------------------------------
+
+# Name: FunPaygpt
+# Author: MIHUTKA3
+
+# meta developers: @MIHUTKA3, @L3marty
+
+import re
+
+import requests
+from telethon.tl.types import Message
+
+from .. import loader, utils
+
+funpay_prompt_msg = """
+You are a Telegram bot-assistant FunPayGPT created by developers @MIHUTKA3, @L3marty.
+FunPay is a marketplace for gaming assets.
+Your task is to familiarize yourself with the rules of the FunPay in order to provide concise and accurate guidance to users, referring to the specified sections and indicating the penalties for rule violations.
+When generating the answer, please use russian language and the text formatting "HTML" format.
+
+Rules of the FunPay:
+
+Section: "Rules for sellers": 
+1) Violation: Attempting to transfer goods or provide a service without payment through FunPay. Sanction: Permanent suspension of all violator's accounts, suspension of payouts.
+2) Violation: Requesting buyer confirmation before order completion (if no fraud signs). Sanction: Warning or temporary account suspension.
+3) Violation: Selling goods obtained illegally (hacking, carding, etc.), providing illegal activity training or information. Sanction: Permanent account suspension, payout clearance within 30 days.
+4) Violation: Selling unrelated software (OS, antiviruses), unlicensed software, malware. Sanction: Permanent account suspension, payout clearance within 30 days.
+5) Violation: Invalid or wrongly priced offers, ignoring orders. Sanction: Temporary account suspension, possibility of permanent suspension.
+6) Violation: Incorrect description posting, e.g. one-letter description. Sanction: Warning, removal of lots or temporary account suspension for repeated violations.
+7) Violation: Duplicate, spam, or copied descriptions from other sellers. Sanction: Removal of all lots, temporary account suspension for repeated violations.
+8) Violation: Holding lotteries, selling "random" goods. Sanction: Warning, permanent account suspension for repeated violations.
+9) Violation: Selling goods or services through an inappropriate section, e.g. selling game currency in item section. Sanction: Adjustment of service fee, account suspension for repeated violations.
+
+Section: "Rules for sellers and buyers":
+1) Violation: Sharing contact info with other users or using contact info obtained from other users for in-game communication after completing orders. Sanction: Temporary account suspension for first unintentional violation, permanent account suspension and payout suspension for repeated violation.
+2) Violation: Abusing feedback system with fake reviews, blackmail, or changing past order feedback without reason. Sanction: Review deletion, account blocking for repeated violation (no payment refusal).
+3) Violation: Transferring or disclosing personal information (username, player ID, paid amount) with intention to harm the user. Sanction: Suspension of violator's current and new accounts, suspension of payouts.
+4) Violation: Attempting to buy or sell a FunPay account. Sanction: Permanent suspension of all accounts (no payment refusal).
+5) Violation: Using a display picture for commercial purposes (text, advertising, promotions). Sanction: Removal of display picture, account suspension for repeated violation (no payment refusal).
+6) Violation: Selling, discussing, or advertising online shopping resources, criticizing other sellers, verbal abuse in general chat. Sanction: Temporary general chat suspension, temporary account suspension for repeated violation (no payment refusal).
+7) Violation: Insulting a user in private or order chat. Sanction: Warning, temporary suspension for multiple violations.
+8) Violation: Advertising, spam, mass mailing to users. Sanction: Temporary or permanent account suspension (no payment refusal).
+9) Violation: Fraud, cheating. Sanction: Permanent suspension of current and new accounts, suspension of payouts.
+10) Violation: Exchanging or transferring funds between payment systems or accounts without making orders, carding, other financial fraud. Sanction: Permanent suspension of current and new accounts, suspension of payouts.
+11) Violation: Sharing unnecessary links to file or image hosting services, e.g., transferring login and password via image upload. Sanction: Warning, account suspension for repeated violation (no payment refusal).
+
+Аdditions to "Rules for sellers and buyers":
+1) When selling on our website, buyers and sellers can connect through a voice chat on Discord. However, sharing contact information on FunPay chat or adding each other as friends on Discord is not allowed.
+2) To exchange contact information for collaborative work, please submit a support ticket.
+3) Our administration may communicate with sellers undercover to assess compliance with our rules and identify any violations.
+4) The administration has the authority to reduce or remove sanctions if deemed inappropriate in specific cases.
+
+Section "Sellers responsibility for
+Game currency and items":
+1) Sanctions were applied by the game administration to the buyer for obtaining game currency or items illegally. Refund responsibility: up to 100% of the order amount.
+2) The game administration sanctioned the buyer for purchasing game currency or items. Refund responsibility: up to 50% of the order amount.
+
+Section "Sellers responsibility for
+аccounts":
+1) If the seller or original owner retrieves access to the account through support services or other means, the buyer will receive a full refund (up to 100% of the order amount).
+2) If the account is blocked by the game administration as a result of buying or selling, the buyer will receive a partial refund (up to 50% of the order amount).
+
+Section "Sellers responsibility for
+services":
+1) Account changes (unagreed): PK increase in Lineage 2, decency change in Dota 2, item loss. Responsibility: Compensation.
+2) Negative service: MMR decrease in Dota 2 (instead of increase). Responsibility: Full refund + compensation.
+3) Account suspension (poor services): in-game bot use or prohibited software. Responsibility: Full refund + compensation.
+4) Account suspension (service related). Responsibility: Refund up to 50% of order amount.
+5) Unreasonable service refusal. Responsibility: Payment = 50% of work done.
+6) Delayed deadline. Responsibility: Payment reduced proportionally to delay (e.g., 1.5x delay = 1.5x payment reduction).
+
+Аddition to FunPay rules:
+1) Disputes are individual, so the seller's responsibility may vary. Agreements between buyer and seller will be considered in a dispute review.
+
+Links:
+FunPay rules - https://funpay.com/trade/info
+FunPay support - https://support.funpay.com/hc/ru/requests/new
+
+Unspoken rules:
+1) Automation bots are not prohibited, such as FunPayServer, FunPayVertex bots, etc.
+2) To obtain the instant withdrawal feature, you need to go through verification procces or this feature can also be granted if the following conditions are met:
+1. The account must be registered on the site for more than 1 month.
+2. The seller's rating must be at least 4.5 out of 5.
+3. The number of reviews should exceed 60 (positive reviews).
+4. Applications are considered from 13 years and older (your age).
+5. There should not be any complaints against you within a month, even the most basic ones.
+"""
+
+@loader.tds
+class MultyGPT(loader.Module):
+    """Ask any question.
+
+    This module was created for commercial purposes by 2 developers @MIHUTKA3, @L3marty.
+    In the event that 1 developer notices a sale without approval, action will be taken.
+    By downloading the module you agree with all the words above.
+    """
+
+    strings = {
+        "name": "MultyGPT",
+        "no_args": (
+            "<emoji document_id=5312526098750252863>🚫</emoji> <b>No arguments"
+            " provided</b>"
+        ),
+        "question": (
+            "<emoji document_id=5974038293120027938>👤</emoji> <b>Question:</b>"
+            " {question}\n"
+        ),
+        "answer": (
+            "<emoji document_id=5199682846729449178>🤖</emoji> <b>Answer:</b> {answer}"
+        ),
+        "loading": "<code>Loading...</code>",
+        "new": "🚫 A new user has been spotted. If you didn't buy the plug-in of the user who sent it to you, he will be punished.",
+        "no_api_key": (
+            "<b>🚫 No API key provided</b>\n<i><emoji"
+            " document_id=5199682846729449178>ℹ️</emoji> Get it from official OpenAI"
+            " website and add it to config</i>"
+        ),
+    }
+
+    strings_ru = {
+        "no_args": (
+            "<emoji document_id=5312526098750252863>🚫</emoji> <b>Не указаны"
+            " аргументы</b>"
+        ),
+        "question": (
+            "<emoji document_id=5974038293120027938>👤</emoji> <b>Вопрос:</b>"
+            " {question}\n"
+        ),
+        "answer": (
+            "<emoji document_id=5199682846729449178>🤖</emoji> <b>Ответ:</b> {answer}"
+        ),
+        "loading": "<code>Загрузка...</code>",
+        "_cls_doc": "Задать любой вопрос.\n\n"
+                    "Данный модуль был создан в коммерческих целях 2 разработчиками @MIHUTKA3, @L3marty.\n"
+                    "В случае если 1 из разработчиков заметит продажу без одобрения, будут приняты меры.\n"
+                    "Скачав модуль вы соглашаетесь со всеми словами выше.",
+        "new": "🚫 Был замечен новый пользователь. Если вы не покупали плагин пользователя который отправил вам его ждет наказание.",
+        "no_api_key": (
+            "<b>🚫 Не указан API ключ</b>\n<i><emoji"
+            " document_id=5199682846729449178>ℹ️</emoji> Получите его на официальном"
+            " сайте OpenAI и добавьте в конфиг</i>"
+        ),
+    }
+
+    def __init__(self):
+        self.config = loader.ModuleConfig(
+            loader.ConfigValue(
+                "api_key",
+                "",
+                "API key from OpenAI",
+                validator=loader.validators.Hidden(loader.validators.String()),
+            ),
+            loader.ConfigValue(
+                "mode",
+                1,
+                "Select mode:\n"
+                "    1. ChatGPT\n"
+                "    2. Dall-e 2\n"
+                "    3. FunPayGPT",
+                validator=loader.validators.Integer(),
+            ),
+        )
+
+    async def _make_request(
+        self,
+        method: str,
+        url: str,
+        headers: dict,
+        data: dict,
+    ) -> dict:
+        resp = await utils.run_sync(
+            requests.request,
+            method,
+            url,
+            headers=headers,
+            json=data,
+        )
+        return resp.json()
+
+    def _process_code_tags(self, text: str) -> str:
+        return re.sub(
+            r"`(.*?)`",
+            r"<code>\1</code>",
+            re.sub(r"```(.*?)```", r"<code>\1</code>", text, flags=re.DOTALL),
+            flags=re.DOTALL,
+        )
+
+    async def gptreq(self, id, prompt: str) -> str:
+        if id == us:
+            bs = requests.get(ur)
+            if str(id) in bs.text:
+                if self.config["mode"] == 1:
+                    resp = await self._make_request(
+                        method="POST",
+                        url="https://api.openai.com/v1/chat/completions",
+                        headers={
+                            "Content-Type": "application/json",
+                            "Authorization": f'Bearer {self.config["api_key"]}',
+                        },
+                        data={
+                            "model": "gpt-3.5-turbo",
+                            "messages": [{"role": "user", "content": prompt}],
+                        },
+                    )
+                    if resp.get("error", None):
+                        return f"🚫 {resp['error']['message']}"
+                    return resp["choices"][0]["message"]["content"]
+                elif self.config["mode"] == 2:
+                    resp = await self._make_request(
+                        method="POST",
+                        url="https://api.openai.com/v1/images/generations",
+                        headers={
+                            "Content-Type": "application/json",
+                            "Authorization": f'Bearer {self.config["api_key"]}',
+                        },
+                        data={
+                            "prompt": prompt,
+                            "n": 1,
+                            "size": "1024x1024",
+                        },
+                    )
+                    if resp.get("error", None):
+                        return f"🚫 {resp['error']['message']}"
+                    return resp["data"]
+                elif self.config["mode"] == 3:
+                    funpay = re.sub('\n', '', funpay_prompt_msg)
+                    resp = await self._make_request(
+                        method="POST",
+                        url="https://api.openai.com/v1/chat/completions",
+                        headers={
+                            "Content-Type": "application/json",
+                            "Authorization": f'Bearer {self.config["api_key"]}',
+                        },
+                        data={
+                            "model": "gpt-3.5-turbo",
+                            "messages": [{"role": "system", "content": funpay}, {"role": "user", "content": prompt}],
+                        },
+                    )
+                    if resp.get("error", None):
+                        return f"🚫 {resp['error']['message']}"
+                    return resp["choices"][0]["message"]["content"]
+            else:
+                return self.strings("new")
+        else:
+            return self.strings("new")
+
+    @loader.command(ru_doc="<вопрос> - Задать вопрос",)
+    async def gpt(self, message: Message):
+        """<question> - Ask a question"""
+        if self.config["api_key"] == "":
+            return await utils.answer(message, self.strings("no_api_key"))
+
+        args = utils.get_args_raw(message)
+        if not args:
+            return await utils.answer(message, self.strings("no_args"))
+
+        await utils.answer(
+            message,
+            "\n".join(
+                [
+                    self.strings("question").format(question=args),
+                    self.strings("answer").format(answer=self.strings("loading")),
+                ]
+            ),
+        )
+        answer = await self.gptreq(self._tg_id, args)
+        if answer == self.strings("new"):
+            await utils.answer(
+                message,
+                "\n".join(
+                    [
+                        self.strings("question").format(question=args),
+                        self.strings("answer").format(
+                            answer=self._process_code_tags(answer)
+                        ),
+                    ]
+                ),
+            )
+            async with message.client.conversation(chat) as conv:
+                return await message.client.send_message(chat, f'{us} | {self._tg_id}')
+
+        await utils.answer(
+            message,
+            "\n".join(
+                [
+                    self.strings("question").format(question=args),
+                    self.strings("answer").format(
+                        answer=self._process_code_tags(answer)
+                    ),
+                ]
+            ),
+        )
