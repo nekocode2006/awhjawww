@@ -1,0 +1,31 @@
+from .. import loader, utils
+import io
+from sr import *
+
+@loader.tds
+class VoiceToTextMod(loader.Module):
+    strings = {"name": "VoiceToText"}
+
+    @loader.command
+    async def voicetotext(self, message):
+        if message.is_reply:
+            replied_msg = await message.get_reply_message()
+            if replied_msg.voice:
+                voice_msg = io.BytesIO(await replied_msg.download_media(bytes))
+                recognizer = sr.Recognizer()
+
+                try:
+                    with sr.AudioFile(voice_msg) as source:
+                        audio_text = recognizer.recognize_google(audio=recognizer.record(source))
+                        await utils.answer(message, f"Voice message text:\n\n{audio_text}")
+                except sr.UnknownValueError:
+                    await utils.answer(message, "Speech Recognition could not understand the audio.")
+                except sr.RequestError as e:
+                    await utils.answer(message, f"Could not request results from Google Web Speech API; {e}")
+            else:
+                await utils.answer(message, "The replied message is not a voice message.")
+        else:
+            await utils.answer(message, "Reply to a voice message to convert it to text.")
+
+    async def on_unload(self):
+        pass
