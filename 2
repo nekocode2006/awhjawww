@@ -1,0 +1,32 @@
+# scope: hikka_min 1.2.10
+# meta developer: @yourusername
+
+from .. import loader, utils
+from googletrans import Translator
+
+class TranslateMod(loader.Module):
+    """Translate text from one language to another."""
+
+    def __init__(self):
+        self.name = _("Translate")
+        self.translator = Translator()
+
+    async def translatecmd(self, message):
+        """Translate text: .translate <from_lang> <to_lang> <text>"""
+        args = utils.get_args_raw(message)
+        if not args:
+            await utils.answer(message, "Usage: .translate <from_lang> <to_lang> <text>")
+            return
+
+        try:
+            from_lang, to_lang, text = args.split(maxsplit=2)
+        except ValueError:
+            await utils.answer(message, "Invalid arguments. Please use: .translate <from_lang> <to_lang> <text>")
+            return
+
+        try:
+            translated = self.translator.translate(text, src=from_lang, dest=to_lang)
+            translated_text = f"From {from_lang}: {text}\nTo {to_lang}: {translated.text}"
+            await utils.answer(message, translated_text)
+        except Exception as e:
+            await utils.answer(message, f"Translation error: {str(e)}")
