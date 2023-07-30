@@ -7,7 +7,7 @@ import asyncio
 
 
 @loader.tds
-class AnimatedQuotes(loader.Module):
+class ModuleAnimatedQuotes(loader.Module):
     strings_ru = {
         "name": "Модуль-[AnimatedQuotes]",
         "no_text": (
