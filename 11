@@ -1,0 +1,48 @@
+# scope: hikka_only
+# meta developer: @your_username
+# meta pic: https://example.com/image.png
+# requires: googletrans
+    
+from .. import loader, utils
+from googletrans import Translator
+
+@loader.tds
+class TranslatorMod(loader.Module):
+    strings = {
+        "name": "Translator",
+        "text_not_provided": "<b>Please provide text to translate.</b>",
+        "translation_failed": "<b>Translation failed:</b> {error}",
+        "translated_text": "<b>Translated:</b> {translated_text}",
+    }
+
+    def __init__(self):
+        self.config = loader.ModuleConfig("TARGET_LANGUAGE", "en", lambda: "en")
+
+    def translate(self, text, target_language):
+        translator = Translator()
+        result = translator.translate(text, dest=target_language)
+        return result.text
+
+    @loader.command
+    async def translate(self, message):
+        """
+        Translate text from Russian to the specified language.
+        """
+        text = utils.get_args_raw(message)
+        if not text:
+            await utils.answer(message, self.strings("text_not_provided", message))
+            return
+
+        try:
+            translated_text = self.translate(text, self.config["TARGET_LANGUAGE"])
+            await utils.answer(
+                message,
+                self.strings("translated_text", message).format(
+                    translated_text=translated_text
+                ),
+                parse_mode="html",
+            )
+        except Exception as e:
+            await utils.answer(
+                message, self.strings("translation_failed", message).format(error=e)
+            )
