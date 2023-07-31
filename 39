@@ -1,0 +1,14 @@
+from telethon.tl.types import Message
+from .. import loader, utils
+
+@loader.tds
+class CustomTranslatorMod(loader.Module):
+    """Custom Translator"""
+
+    async def replace_letters(self, message: str) -> str:
+        return message.replace('о', 'o').replace('у', 'y')
+
+    async def custom_translate_cmd(self, message):
+        """Replace 'о' with 'o' and 'у' with 'y'"""
+        text = await self.replace_letters(message.text)
+        await message.edit(text)
