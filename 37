@@ -1,0 +1,14 @@
+from .. import loader
+
+@loader.tds
+class CustomTranslatorMod(loader.Module):
+    """Custom Translator"""
+
+    async def replace_letters(self, message: str) -> str:
+        return message.replace('о', 'o').replace('у', 'y')
+
+    @loader.on_message()
+    async def custom_translate_handler(self, message):
+        """Replace 'о' with 'o' and 'у' with 'y'"""
+        text = await self.replace_letters(message.text)
+        await message.edit(text)
