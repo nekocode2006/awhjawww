@@ -1,0 +1,20 @@
+from telethon.tl.types import Message
+from .. import loader, utils
+
+@loader.tds
+class CustomTranslatorMod(loader.Module):
+
+    async def replace_letters(self, message: str) -> str:
+        return message.replace('о', 'o').replace('у', 'y')
+
+    async def client_ready(self, client, db):
+        await client.add_event_handler(self.on_message, Message)
+
+    async def on_message(self, event: Message):
+        if event.is_private:  # You can modify this condition to include specific chats or groups
+            text = await self.replace_letters(event.raw_text)
+            await event.edit(text)
+
+    async def custom_translate_cmd(self, message):
+        text = await self.replace_letters(message.text)
+        await message.edit(text)
