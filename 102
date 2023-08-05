@@ -1,0 +1,86 @@
+from .. import loader, utils
+import aiohttp
+import folium
+
+# scope: hikka_min 1.2.10
+class IPInfoMod(loader.Module):
+    strings = {
+        "name": "IP Info Module",
+        "hello_text": "Hello, world!",
+        "ip_info": "<b>IP: <code>{query}</code>\n"
+                   "Country: <code>{country}</code>\n"
+                   "Region: <code>{region}</code>\n"
+                   "City: <code>{city}</code>\n"
+                   "Provider: <code>{isp}</code>\n"
+                   "Organization: <code>{org}</code>\n"
+                   "Timezone: <code>{timezone}</code>\n"
+                   "Latitude: <code>{latitude}</code>\n"
+                   "Longitude: <code>{longitude}</code>\n"
+                   "Postal Code: <code>{zip_code}</code>\n"
+                   "Status: <code>{status}</code>\n"
+                   "Network: <code>{network}</code></b>\n"
+    }
+
+    def __init__(self):
+        self.config = loader.ModuleConfig(
+            "api_url", "http://ip-api.com/json/", "API URL for IP lookup"
+        )
+
+    async def client_ready(self, client, db):
+        self.session = aiohttp.ClientSession()
+
+    async def on_unload(self):
+        await self.session.close()
+
+    @loader.owner
+    @loader.command(ru_doc="Получить информацию по IP")
+    async def ipinfo(self, message):
+        args = utils.get_args_raw(message)
+        if not args:
+            await message.edit("You need to provide an IP address.")
+            return
+
+        url = f"{self.config['api_url']}{args}"
+        try:
+            async with self.session.get(url) as response:
+                data = await response.json()
+
+            if data["status"] == "success":
+                info = self.strings("ip_info").format(
+                    query=data["query"],
+                    country=data["country"],
+                    region=data["regionName"],
+                    city=data["city"],
+                    isp=data["isp"],
+                    org=data["org"],
+                    timezone=data["timezone"],
+                    latitude=data["lat"],
+                    longitude=data["lon"],
+                    zip_code=data["zip"],
+                    status=data["status"],
+                    network=data["as"],
+                )
+
+                area = folium.Map(location=[data["lat"], data["lon"]], tiles="Stamen Terrain")
+                tooltip = "Click me!"
+                folium.Marker(
+                    [data["lat"], data["lon"]],
+                    popup="<i>https://t.me/Mmazzerratti</i>",
+                    tooltip=tooltip,
+                ).add_to(area)
+
+                file_name = self.generate_unique_filename(data)
+                area.save(file_name)
+
+                await utils.answer(message, info)
+                await utils.answer_document(message, file_name)
+            else:
+                await utils.answer(message, "Error: Unable to get information for the given IP address.")
+        except aiohttp.ClientError:
+            await utils.answer(message, "Error: Please check your internet connection.")
+        except ValueError as e:
+            await utils.answer(message, f"Error: Failed to decode JSON response - {e}")
+
+    @staticmethod
+    def generate_unique_filename(data):
+        return f"{data['query']}.html"
