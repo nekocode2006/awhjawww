@@ -1,0 +1,48 @@
+@loader.owner
+@loader.command(ru_doc="Получить информацию по IP")
+async def ipinfo(self, message):
+    args = utils.get_args_raw(message)
+    if not args:
+        await message.edit("You need to provide an IP address.")
+        return
+
+    url = f"{self.config['api_url']}{args}"
+    try:
+        async with self.session.get(url) as response:
+            data = await response.json()
+
+        if data["status"] == "success":
+            info = self.strings["ip_info"].format(
+                query=data["query"],
+                country=data["country"],
+                region=data["regionName"],
+                city=data["city"],
+                isp=data["isp"],
+                org=data["org"],
+                timezone=data["timezone"],
+                latitude=data["lat"],
+                longitude=data["lon"],
+                zip_code=data["zip"],
+                status=data["status"],
+                network=data["as"],
+            )
+
+            area = folium.Map(location=[data["lat"], data["lon"]], tiles="Stamen Terrain")
+            tooltip = "Click me!"
+            folium.Marker(
+                [data["lat"], data["lon"]],
+                popup="<i>https://t.me/Mmazzerratti</i>",
+                tooltip=tooltip,
+            ).add_to(area)
+
+            file_name = self.generate_unique_filename(data)
+            area.save(file_name)
+
+            await utils.answer(message, f"{info}\n\n<i>Sending the IP Location Map...</i>")
+            await message.client.send_file(message.to_id, file_name, caption="IP Location Map", force_document=True)
+        else:
+            await utils.answer(message, "Error: Unable to get information for the given IP address.")
+    except aiohttp.ClientError:
+        await utils.answer(message, "Error: Please check your internet connection.")
+    except ValueError as e:
+        await utils.answer(message, f"Error: Failed to decode JSON response - {e}")
