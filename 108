@@ -1,0 +1,125 @@
+from .. import loader, utils
+import aiohttp
+import folium
+import pycountry
+import phonenumbers
+from phonenumbers import carrier, timezone
+
+# scope: hikka_min 1.2.10
+class IPInfoMod(loader.Module):
+    strings = {
+        "name": "IP Info Module",
+        "hello_text": "Hello, world!",
+        "ip_info": "<b>IP: <code>{query}</code>\n"
+                   "Страна: <code>{country}</code>\n"
+                   "Регион: <code>{region}</code>\n"
+                   "Город: <code>{city}</code>\n"
+                   "Провайдер: <code>{isp}</code>\n"
+                   "Организация: <code>{org}</code>\n"
+                   "Часовой пояс: <code>{timezone}</code>\n"
+                   "Широта: <code>{latitude}</code>\n"
+                   "Долгота: <code>{longitude}</code>\n"
+                   "Почтовый индекс: <code>{zip_code}</code>\n"
+                   "Статус: <code>{status}</code>\n"
+                   "Сеть: <code>{network}</code></b>\n"
+    }
+
+    def __init__(self):
+        self.config = loader.ModuleConfig(
+            "api_url", "http://ip-api.com/json/", "API URL for IP lookup"
+        )
+
+    async def client_ready(self, client, db):
+        self.session = aiohttp.ClientSession()
+
+    async def on_unload(self):
+        await self.session.close()
+
+    @loader.owner
+    @loader.command(ru_doc="Получить информацию по IP")
+    async def ipinfo(self, message):
+        args = utils.get_args_raw(message)
+        if not args:
+            await message.edit("You need to provide an IP address.")
+            return
+
+        url = f"{self.config['api_url']}{args}"
+        try:
+            async with self.session.get(url) as response:
+                data = await response.json()
+
+            if data["status"] == "success":
+                info = self.strings["ip_info"].format(
+                    query=data["query"],
+                    country=data["country"],
+                    region=data["regionName"],
+                    city=data["city"],
+                    isp=data["isp"],
+                    org=data["org"],
+                    timezone=data["timezone"],
+                    latitude=data["lat"],
+                    longitude=data["lon"],
+                    zip_code=data["zip"],
+                    status=data["status"],
+                    network=data["as"],
+                )
+
+                area = folium.Map(location=[data["lat"], data["lon"]], tiles="Stamen Terrain")
+                tooltip = "Click me!"
+                folium.Marker(
+                    [data["lat"], data["lon"]],
+                    popup="<i>https://t.me/Mmazzerratti</i>",
+                    tooltip=tooltip,
+                ).add_to(area)
+
+                file_name = self.generate_unique_filename(data)
+                area.save(file_name)
+
+                await utils.answer(message, info)
+                await message.client.send_file(message.to_id, file_name, caption="IP Location Map")
+            else:
+                await utils.answer(message, "Error: Unable to get information for the given IP address.")
+        except aiohttp.ClientError:
+            await utils.answer(message, "Error: Please check your internet connection.")
+        except ValueError as e:
+            await utils.answer(message, f"Error: Failed to decode JSON response - {e}")
+
+    @staticmethod
+    def generate_unique_filename(data):
+        return f"{data['query']}.html"
+
+    @loader.command(ru_doc="Получить информацию по номеру телефона")
+    async def phoneinfo(self, message):
+        phone_number = message.text.split('/phone', 1)[-1].strip()
+        if not phone_number:
+            await message.edit("Пожалуйста, введите номер телефона.")
+            return
+        else:
+            try:
+                parsed_number = phonenumbers.parse(phone_number, None)
+            except:
+                await message.edit("Неверный формат телефонного номера.")
+                return
+
+            country_iso = phonenumbers.region_code_for_country_code(parsed_number.country_code)
+            country = pycountry.countries.get(alpha_2=country_iso)
+
+            operator = phonenumbers.carrier.name_for_number(parsed_number, None)
+            if operator == '':
+                operator = 'Не найдено'
+
+            timezone_info = timezone.time_zones_for_number(parsed_number)
+            if len(timezone_info) > 1:
+                timezone_info = f"{len(timezone_info)} штук"
+            elif len(timezone_info) == 1:
+                timezone_info = ''.join(timezone_info)
+
+            output = f""" 
+=====================================
+Номер: <code>{phone_number}</code>
+Страна: <code>{country.name}</code>
+Оператор: <code>{operator}</code>
+Часовой пояс: <code>{timezone_info}</code>
+====================================="""
+
+            await utils.answer(message, output, parse_mode="html")
